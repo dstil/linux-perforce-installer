@@ -1,38 +1,52 @@
 #!/bin/sh
 
-# Install wget for fetching URLs
-yum install wget
+# Stop p4d (if running)
+systemctl status p4d | grep running > /dev/null
+if test $? -eq 0; then
+   echo "Stopping p4d service..."
+   sudo systemctl stop p4d
+fi
 
 # Download Perforce binaries to /opt and make executable
-mkdir -p /opt/perforce/r16.1
-wget ftp://ftp.perforce.com/perforce/r16.1/bin.linux26x86_64/p4d /opt/perforce/r16.1
-wget ftp://ftp.perforce.com/perforce/r16.1/bin.linux26x86_64/p4 /opt/perforce/r16.1
-chmod +x /opt/perforce/r16.1/p4d
-chmod +x /opt/perforce/r16.1/p4
+echo "Downloading Perforce binaries..."
+sudo mkdir -p /opt/perforce/r16.1
+sudo curl --progress-bar --url ftp://ftp.perforce.com/perforce/r16.1/bin.linux26x86_64/p4d --output /opt/perforce/r16.1/p4d
+sudo curl --progress-bar --url ftp://ftp.perforce.com/perforce/r16.1/bin.linux26x86_64/p4 --output /opt/perforce/r16.1/p4
+sudo chmod +x /opt/perforce/r16.1/p4d
+sudo chmod +x /opt/perforce/r16.1/p4
 
 # Symlink binaries into /usr/local/bin
-ln -s /opt/perforce/r16.1/p4d /usr/local/bin/p4d
-ln -s /opt/perforce/r16.1/p4 /usr/local/bin/p4
+echo "Symlinking binaries into /usr/local/bin..."
+sudo ln -fs /opt/perforce/r16.1/p4d /usr/local/bin/p4d
+sudo ln -fs /opt/perforce/r16.1/p4 /usr/local/bin/p4
 
 # Create Perforce directories
-mkdir /perforce_depot
-mkdir /var/log/perforce
+echo "Creating perforce directories..."
+mkdir -p /perforce_depot
+sudo mkdir -p /var/log/perforce
 
 # Add Perforce user
-adduser perforce
-passwd perforce
+id -u perforce > /dev/null
+if test $? -eq 1; then
+   echo "Creating perforce user..."
+   sudo adduser perforce
+   sudo passwd perforce
+fi
 
 # Make Perforce owner of binaries and directories
-chown perforce /perforce_depot
-chown -R perforce /opt/perforce
-chown -R perforce /var/log/perforce
-chown -h perforce /usr/local/bin/p4d
-chown -h perforce /usr/local/bin/p4
+echo "Changing ownership of perforce binaries and directories..."
+sudo chown perforce /perforce_depot
+sudo chown -R perforce /opt/perforce
+sudo chown -R perforce /var/log/perforce
+sudo chown -h perforce /usr/local/bin/p4d
+sudo chown -h perforce /usr/local/bin/p4
 
 # Install p4d systemd service
-wget https://github.com/dstil/insert-repo-url-here/p4d.service /etc/systemd/system/
-chmod 664 /etc/systemd/system/p4d.service
+echo "Downloading p4d service..."
+curl --progress-bar --url https://raw.githubusercontent.com/dstil/linux-perforce-installer/master/centos/p4d.service --output /etc/systemd/system/p4d.service
+sudo chmod 664 /etc/systemd/system/p4d.service
 
 # Start p4d service
-systemctl daemon-reload
-systemctl start p4d
+echo "Starting p4d service..."
+sudo systemctl daemon-reload
+sudo systemctl start p4d
