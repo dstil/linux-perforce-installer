@@ -22,7 +22,7 @@ sudo ln -fs /opt/perforce/r16.1/p4 /usr/local/bin/p4
 
 # Create Perforce directories
 echo "Creating perforce directories..."
-mkdir -p /perforce_depot
+sudo mkdir -p /perforce_depot
 sudo mkdir -p /var/log/perforce
 
 # Add Perforce user
