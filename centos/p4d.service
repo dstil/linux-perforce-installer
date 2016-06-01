@@ -1,0 +1,16 @@
+[Unit]
+Description=Perforce Server Daemon
+After=network-online.target
+
+[Service]
+Type=simple
+User=perforce
+Environment=P4PORT=1666
+Environment=P4ROOT=/perforce_depot
+Environment=P4LOG=/var/log/perforce/p4err
+Environment=P4JOURNAL=/var/log/perforce/journal
+ExecStart=/usr/local/bin/p4d
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

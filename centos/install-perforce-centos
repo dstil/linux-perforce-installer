@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Install wget for fetching URLs
+yum install wget
+
+# Download Perforce binaries to /opt and make executable
+mkdir -p /opt/perforce/r16.1
+wget ftp://ftp.perforce.com/perforce/r16.1/bin.linux26x86_64/p4d /opt/perforce/r16.1
+wget ftp://ftp.perforce.com/perforce/r16.1/bin.linux26x86_64/p4 /opt/perforce/r16.1
+chmod +x /opt/perforce/r16.1/p4d
+chmod +x /opt/perforce/r16.1/p4
+
+# Symlink binaries into /usr/local/bin
+ln -s /opt/perforce/r16.1/p4d /usr/local/bin/p4d
+ln -s /opt/perforce/r16.1/p4 /usr/local/bin/p4
+
+# Create Perforce directories
+mkdir /perforce_depot
+mkdir /var/log/perforce
+
+# Add Perforce user
+adduser perforce
+passwd perforce
+
+# Make Perforce owner of binaries and directories
+chown perforce /perforce_depot
+chown -R perforce /opt/perforce
+chown -R perforce /var/log/perforce
+chown -h perforce /usr/local/bin/p4d
+chown -h perforce /usr/local/bin/p4
+
+# Install p4d systemd service
+wget https://github.com/dstil/insert-repo-url-here/p4d.service /etc/systemd/system/
+chmod 664 /etc/systemd/system/p4d.service
+
+# Start p4d service
+systemctl daemon-reload
+systemctl start p4d
